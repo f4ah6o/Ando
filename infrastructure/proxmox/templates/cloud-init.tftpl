@@ -1,0 +1,52 @@
+#cloud-config
+hostname: ${hostname}
+manage_etc_hosts: true
+
+users:
+  - name: ${default_user}
+    shell: /bin/bash
+    ssh_authorized_keys:
+%{ for key in ssh_public_keys ~}
+      - ${key}
+%{ endfor ~}
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+
+package_update: true
+packages:
+  - curl
+  - unzip
+  - ca-certificates
+  - jq
+  - net-tools
+  - apt-transport-https
+
+runcmd:
+  - echo "${hostname}" > /etc/hostname
+  - systemctl restart systemd-hostnamed
+  - curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+  - echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+  - apt-get update
+  - apt-get install -y nomad consul
+  - mkdir -p /etc/nomad.d /etc/consul.d
+  - cat > /etc/nomad.d/nomad.hcl <<'NOMAD_CFG'
+    data_dir  = "/opt/nomad"
+    datacenter = "${nomad_datacenter}"
+    bind_addr = "0.0.0.0"
+    advertise {
+      http = "{{ GetInterfaceIP \"eth0\" }}:4646"
+      rpc  = "{{ GetInterfaceIP \"eth0\" }}:4647"
+      serf = "{{ GetInterfaceIP \"eth0\" }}:4648"
+    }
+  NOMAD_CFG
+  - cat > /etc/consul.d/consul.hcl <<'CONSUL_CFG'
+    datacenter = "${consul_datacenter}"
+    data_dir   = "/opt/consul"
+    bind_addr  = "{{ GetInterfaceIP \"eth0\" }}"
+    advertise_addr = "{{ GetInterfaceIP \"eth0\" }}"
+  CONSUL_CFG
+  - systemctl enable nomad
+  - systemctl enable consul
+  - systemctl start consul
+  - systemctl start nomad
+
+${extra_cloud_config}

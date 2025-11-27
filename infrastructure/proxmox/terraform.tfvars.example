@@ -1,0 +1,33 @@
+proxmox_api_url       = "https://proxmox.example:8006/api2/json"
+proxmox_api_user      = "terraform@pve"
+proxmox_api_password  = "super-secret"
+proxmox_tls_insecure  = true
+proxmox_target_node   = "pve01"
+proxmox_pool          = "homelab"
+vm_storage            = "local-lvm"
+vm_template           = "local:vztmpl/debian-12-standard_12.0-1_amd64.tar.zst"
+vm_bridge             = "vmbr0"
+ssh_public_keys       = ["ssh-ed25519 AAAAB3... user@example"]
+nomad_datacenter      = "lab"
+consul_datacenter     = "lab"
+
+nodes = {
+  nomad-01 = {
+    ip   = "dhcp"
+    cores = 2
+    memory = 2048
+    tags = ["server", "controller"]
+  }
+  nomad-02 = {
+    ip   = "dhcp"
+    cores = 2
+    memory = 2048
+    tags = ["server"]
+  }
+  nomad-03 = {
+    ip   = "dhcp"
+    cores = 2
+    memory = 2048
+    tags = ["server"]
+  }
+}
