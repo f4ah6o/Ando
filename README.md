@@ -15,7 +15,7 @@
 * Nomad
 * Consul
 * Envoy
-* Certbot(DNS-01 Challenge) 
+* Certbot(DNS-01 Challenge)
 * **SquidSCAS-based CASB**: **Squid + c-icap + SquidSCAS**
 * **E2E Load Testing**: **k6**
 
@@ -23,6 +23,7 @@
 
 ## 📂 Directory Structure
 
+```
 .
 ├── infrastructure/          # Infrastructure as Code (Terraform/OpenTofu)
 │   ├── modules/             # Reusable modules
@@ -37,5 +38,27 @@
 │   │   └── workloads/            # Template for your apps
 │   └── config/              # Shared configurations
 └── docs/                    # Setup guides & Security details
+```
 
 ---
+
+## Proxmox開発環境 (参考: kencx/homelab)
+
+`infrastructure/proxmox/` にTerraform構成を追加し、Proxmox VE上でNomad/Consul用のLXCノードを簡単に立ち上げられるようにしています。
+
+1. 例示変数をコピーして環境値を設定します。
+
+   ```bash
+   cd infrastructure/proxmox
+   cp terraform.tfvars.example terraform.tfvars
+   $EDITOR terraform.tfvars
+   ```
+
+2. 初期化とデプロイ。
+
+   ```bash
+   terraform init
+   terraform apply
+   ```
+
+`nodes` マップに記述した台数分のLXCが作成され、cloud-initでNomad/Consulがインストール・起動されます。詳細は [infrastructure/proxmox/README.md](infrastructure/proxmox/README.md) を参照してください。
